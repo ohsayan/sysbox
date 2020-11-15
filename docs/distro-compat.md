@@ -8,15 +8,16 @@
 
 ## Supported Linux Distros
 
-Sysbox relies on functionality that is only present in relatively modern Linux
-kernels.
+Sysbox relies on functionality that is only present in recent Linux kernels.
 
 In Ubuntu's case, these requirements are met starting with Kernel 5.0. For
 the rest of the Sysbox's supported distributions, Kernel 5.5+ is required.
 
-The following table summarizes the Linux distributions being supported as well
-as the operational modes (`shiftfs` vs `userns-remap`) being allowed. For
-scenarios where a kernel upgrade is required, refer to the corresponding
+The following table summarizes the Linux distributions being supported, as well
+as the operational modes utilized to manage the [user-namespace ID mappings](user-guide/security.md#user-namespace-id-mapping)
+(i.e. `automatic` vs `directed`).
+
+For scenarios where a kernel upgrade is required, refer to the corresponding
 upgrade procedure further below.
 
 <p align="center">
@@ -36,30 +37,35 @@ expected. Refer to [Fedora's kernel-upgrade](#Fedora-kernel-upgrade) procedure f
 
 Sysbox runtime relies on kernel's user-namespace feature to secure system
 containers. There are two approaches utilized by Sysbox to manage the creation
-of these user-namespaces: `shiftfs` and `userns-remap`.
+of these user-namespaces: `automatic` and `directed`.
 
-### Shiftfs Mode
+What follows is a high-level description of what each of these modes accomplish;
+refer to the [user-guide](user-guide/security.md#user-namespace-id-mapping) for
+more details.
+
+### Auto userns ID mapping
 
 Recent Ubuntu kernels carry a module called `shiftfs` that Sysbox uses as part of
 its container isolation strategy.
 
-With `shiftfs`, Sysbox can create containers that use the user-namespace for
+With `shiftfs`, Sysbox can create containers that utilize the user-namespace for
 strong isolation without requiring the higher level container manager to do this
-explicitly (e.g. without enabling userns-remap mode in Docker).
+explicitly (e.g. without enabling userns-remap mode in Docker). In other words,
+Sysbox automatically enables and allocates user-ID mappings for the container.
 
 This is the default operational mode in scenarios where `shiftfs` kernel module
-is present. Refer to the Sysbox [installation guide](user-guide/install.md) for more details.
+is present. Refer to the Sysbox [installation guide](user-guide/install.md) for
+more details.
 
-### Userns-remap Mode
+### Directed userns ID mapping
 
-In scenarios where `shiftfs` module is not found, Sysbox requires Docker to be
-configured in in [userns-remap mode](https://docs.docker.com/engine/security/userns-remap/). At the moment this applies to all the non-Ubuntu releases supported
-by Sysbox, as well as Ubuntu-Cloud images utilized by some Cloud Providers.
+In scenarios where `shiftfs` module is not found, Sysbox must rely on the container
+manager (i.e. Docker, K8s, etc) to select the desired ID mappings. This applies to
+all the non-Ubuntu releases supported by Sysbox, as well as Ubuntu-Cloud images
+utilized by some Cloud Providers.
 
-In this scenario, no configuration is expected from the user. Upon detection of
-`shiftfs` absence, the Sysbox installer will offer the user the possibility
-to automatically configure Docker to operate in userns-remap mode.
-
+Notice that no configuration is expected by the user as Sysbox installer is capable
+of detecting `shiftfs` absence and configure the container managers accordingly.
 Refer to the Sysbox [installation guide](user-guide/install.md) for more details.
 
 ## Kernel Upgrade Procedures
